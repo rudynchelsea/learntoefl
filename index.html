@@ -3,7 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0F4C75">
     <title>mhmdkhoiruddin Journey - TOEFL</title>
+    
+    <!-- PWA: Link Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2232/2232688.png">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:wght@600;700&display=swap" rel="stylesheet">
     
@@ -244,7 +250,7 @@
             <div class="text-4xl mb-2">🔒</div>
             <h3 class="text-xl font-bold text-gray-800 mb-2">Zona Terkunci</h3>
             <p class="text-sm text-gray-500 mb-6">Masukkan PIN Admin atau selesaikan level sebelumnya dengan skor minimal 70.</p>
-            <input type="number" id="pin-input" placeholder="PIN: Tanya Mr.Udin" class="w-full text-center text-2xl tracking-widest p-3 border-2 border-gray-200 rounded-xl mb-4 focus:border-[#3282B8] outline-none transition">
+            <input type="number" id="pin-input" placeholder="PIN: 20511947" class="w-full text-center text-2xl tracking-widest p-3 border-2 border-gray-200 rounded-xl mb-4 focus:border-[#3282B8] outline-none transition">
             <div class="flex gap-3">
                 <button onclick="document.getElementById('modal-pin').classList.remove('active')" class="flex-1 py-3 text-gray-500 font-medium">Batal</button>
                 <button onclick="app.submitPin()" class="flex-1 btn-action">Buka Paksa</button>
@@ -515,6 +521,13 @@
                 return buffer;
             }
         };
+
+        // 6. PWA Registration
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js')
+                .then(() => console.log('Service Worker Registered'))
+                .catch((err) => console.log('SW Registration Failed', err));
+        }
 
         // --- BANK SOAL (15 Soal x 6 Topik = 90 Soal) ---
         const questionBank = {
