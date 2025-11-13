@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mhmdkhoiruddin Journey - TOEFL</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:wght@600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #F3F4F6; }
+        .font-adventure { font-family: 'Lora', serif; }
+        
+        /* Warna Brand */
+        :root {
+            --color-primary: #0F4C75;   /* Navy Blue */
+            --color-secondary: #3282B8; /* Soft Blue */
+            --color-accent: #BBE1FA;    /* Light Blue */
+            --color-gold: #D4AF37;      /* Gold */
+            --color-success: #10B981;
+            --color-error: #EF4444;
+        }
+
+        .text-primary { color: var(--color-primary); }
+        .bg-primary { background-color: var(--color-primary); }
+        .bg-secondary { background-color: var(--color-secondary); }
+        
+        /* UI Components */
+        .btn-action {
+            background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .btn-action:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); }
+        .btn-action:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+
+        .card-glass {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+
+        /* Map Zones */
+        .map-zone {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .map-zone:not(.locked):hover { transform: translateY(-5px); border-color: var(--color-secondary); }
+        .map-zone.locked { filter: grayscale(100%); opacity: 0.75; background-color: #E5E7EB; }
+        .map-zone.locked::after {
+            content: '🔒'; font-size: 2.5rem; position: absolute;
+            top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.6;
+        }
+
+        /* Quiz Options */
+        .option-btn {
+            width: 100%; text-align: left; padding: 1rem; margin-bottom: 0.75rem;
+            border: 2px solid #E5E7EB; border-radius: 0.75rem; font-weight: 500;
+            transition: all 0.2s; background: white;
+        }
+        .option-btn:hover { border-color: var(--color-secondary); background-color: #F0F9FF; }
+        .option-btn.correct { border-color: var(--color-success); background-color: #D1FAE5; }
+        .option-btn.wrong { border-color: var(--color-error); background-color: #FEE2E2; }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px); z-index: 50;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-content { width: 90%; max-width: 500px; max-height: 85vh; overflow-y: auto; transform: scale(0.95); transition: transform 0.3s; }
+        .modal-overlay.active .modal-content { transform: scale(1); }
+
+    </style>
+</head>
+<body class="text-gray-800 min-h-screen flex flex-col">
+
+    <div id="app-wrapper" class="flex-grow w-full max-w-lg mx-auto bg-white shadow-2xl min-h-screen flex flex-col relative">
+        
+        <!-- HEADER -->
+        <header class="bg-gradient-to-r from-[#0F4C75] to-[#3282B8] text-white p-6 rounded-b-3xl shadow-lg z-10 relative">
+            <div class="flex items-center justify-between mb-2">
+                <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                </div>
+                <div class="text-right">
+                    <p class="text-xs opacity-80 uppercase tracking-wider">developed by</p>
+                    <p class="font-bold text-sm">mhmdkhoiruddin</p>
+                </div>
+            </div>
+            <h1 class="font-adventure text-3xl font-bold">TOEFL Journey</h1>
+            <p class="text-blue-100 text-sm mt-1">Taklukkan 6 Zona Tantangan</p>
+        </header>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="flex-grow p-6 relative overflow-y-auto">
+            
+            <!-- 1. SCREEN: MAP (HOME) -->
+            <div id="screen-map" class="space-y-6">
+                <div class="flex justify-between items-end">
+                    <h2 class="font-bold text-gray-800 text-xl">Peta Dunia TOEFL</h2>
+                    <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">Min. Score: 70</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <!-- Zone 1: Structure -->
+                    <div class="map-zone card-glass p-4 text-center border-b-4 border-[#0F4C75]" onclick="app.startTopic('structure')">
+                        <div class="text-4xl mb-2">🏰</div>
+                        <h3 class="font-bold text-[#0F4C75]">Structure</h3>
+                        <p class="text-xs text-gray-500">15 Soal</p>
+                    </div>
+                    <!-- Zone 2 -->
+                    <div id="zone-writtenExpression" class="map-zone locked card-glass p-4 text-center border-b-4 border-gray-300" onclick="app.checkLock('writtenExpression')">
+                        <div class="text-4xl mb-2">🌲</div>
+                        <h3 class="font-bold text-gray-700">Expression</h3>
+                        <p class="text-xs text-gray-500">15 Soal</p>
+                    </div>
+                    <!-- Zone 3 -->
+                    <div id="zone-advancedGrammar" class="map-zone locked card-glass p-4 text-center border-b-4 border-gray-300" onclick="app.checkLock('advancedGrammar')">
+                        <div class="text-4xl mb-2">⛰️</div>
+                        <h3 class="font-bold text-gray-700">Adv. Grammar</h3>
+                        <p class="text-xs text-gray-500">15 Soal</p>
+                    </div>
+                    <!-- Zone 4 -->
+                    <div id="zone-reinforcement" class="map-zone locked card-glass p-4 text-center border-b-4 border-gray-300" onclick="app.checkLock('reinforcement')">
+                        <div class="text-4xl mb-2">⛩️</div>
+                        <h3 class="font-bold text-gray-700">Reinforce</h3>
+                        <p class="text-xs text-gray-500">15 Soal</p>
+                    </div>
+                    <!-- Zone 5 -->
+                    <div id="zone-reading" class="map-zone locked card-glass p-4 text-center border-b-4 border-gray-300" onclick="app.checkLock('reading')">
+                        <div class="text-4xl mb-2">📜</div>
+                        <h3 class="font-bold text-gray-700">Reading</h3>
+                        <p class="text-xs text-gray-500">15 Soal</p>
+                    </div>
+                    <!-- Zone 6 -->
+                    <div id="zone-listening" class="map-zone locked card-glass p-4 text-center border-b-4 border-gray-300" onclick="app.checkLock('listening')">
+                        <div class="text-4xl mb-2">🎧</div>
+                        <h3 class="font-bold text-gray-700">Listening</h3>
+                        <p class="text-xs text-gray-500">15 Soal</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. SCREEN: QUIZ -->
+            <div id="screen-quiz" class="hidden h-full flex flex-col">
+                <!-- Top Bar -->
+                <div class="flex justify-between items-center mb-6">
+                    <button onclick="app.showScreen('map')" class="text-gray-500 hover:text-[#0F4C75] font-medium flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                        Keluar
+                    </button>
+                    <div class="bg-blue-50 text-[#0F4C75] px-3 py-1 rounded-full text-sm font-bold" id="quiz-progress">1 / 15</div>
+                </div>
+
+                <!-- Question Card -->
+                <div class="card-glass p-6 flex-grow relative">
+                    <!-- Audio Player (Listening Only) -->
+                    <div id="audio-player-wrapper" class="hidden mb-6 bg-[#F3F4F6] p-4 rounded-xl border border-gray-200">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-bold text-gray-500 uppercase">Audio Section</span>
+                            <span id="audio-status" class="text-xs text-blue-500 animate-pulse"></span>
+                        </div>
+                        <button id="btn-play-audio" class="w-full bg-white border border-gray-300 text-gray-700 font-semibold py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-gray-50 transition">
+                            <span>🔊</span> Putar Audio Percakapan
+                        </button>
+                        <!-- Transkrip -->
+                        <div class="mt-3 pt-3 border-t border-gray-200">
+                            <p class="text-xs text-gray-400 font-bold mb-1">TRANSKRIP:</p>
+                            <p id="audio-transcript" class="text-sm text-gray-600 italic leading-relaxed"></p>
+                        </div>
+                    </div>
+
+                    <h3 id="question-text" class="text-lg font-serif font-medium text-gray-800 mb-6 leading-relaxed"></h3>
+                    
+                    <div id="options-container" class="space-y-3">
+                        <!-- Options Injected Here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. SCREEN: RESULT -->
+            <div id="screen-result" class="hidden text-center pt-10">
+                <div id="result-icon" class="text-6xl mb-4">🏆</div>
+                <h2 class="font-adventure text-3xl font-bold text-[#0F4C75] mb-2">Misi Selesai!</h2>
+                <p class="text-gray-500 mb-6">Berikut adalah hasil petualangan Anda.</p>
+                
+                <div class="card-glass p-8 mb-8 mx-4">
+                    <p class="text-sm text-gray-400 uppercase tracking-widest mb-1">Skor Akhir</p>
+                    <div id="final-score" class="text-6xl font-black text-[#3282B8] mb-2">0</div>
+                    <div id="pass-fail-badge" class="inline-block px-4 py-1 rounded-full text-sm font-bold bg-green-100 text-green-700">LULUS</div>
+                </div>
+
+                <p id="result-message" class="text-gray-600 px-6 mb-8 text-sm leading-relaxed"></p>
+                
+                <div class="px-6 space-y-3">
+                    <button onclick="app.retryTopic()" class="w-full py-3 text-gray-500 font-medium hover:text-[#0F4C75]">Ulangi Materi</button>
+                    <button onclick="app.showScreen('map')" class="btn-action w-full">Kembali ke Peta</button>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- FOOTER -->
+        <footer class="p-4 text-center text-xs text-gray-400 border-t border-gray-100 bg-white">
+            &copy; 2025 mhmdkhoiruddin. All Rights Reserved.
+        </footer>
+    </div>
+
+    <!-- MODAL: FEEDBACK (PEMBAHASAN) -->
+    <div id="modal-feedback" class="modal-overlay">
+        <div class="modal-content card-glass p-0 overflow-hidden flex flex-col max-h-[80vh]">
+            <div id="fb-header" class="p-4 bg-green-100 text-green-800 font-bold text-lg text-center border-b border-green-200">
+                JAWABAN BENAR!
+            </div>
+            <div class="p-6 overflow-y-auto">
+                <div class="mb-4">
+                    <h4 class="text-xs font-bold text-gray-400 uppercase mb-1">Pembahasan Detail:</h4>
+                    <p id="fb-explanation" class="text-gray-700 text-sm leading-relaxed"></p>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                    <h4 class="text-xs font-bold text-gray-400 uppercase mb-1">Terjemahan Soal:</h4>
+                    <p id="fb-translation" class="text-gray-600 text-sm italic"></p>
+                </div>
+            </div>
+            <div class="p-4 bg-white border-t border-gray-100">
+                <button onclick="app.nextQuestion()" class="btn-action w-full">Lanjut Soal Berikutnya &rarr;</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: PIN -->
+    <div id="modal-pin" class="modal-overlay">
+        <div class="modal-content card-glass p-8 text-center">
+            <div class="text-4xl mb-2">🔒</div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">Zona Terkunci</h3>
+            <p class="text-sm text-gray-500 mb-6">Masukkan PIN Admin atau selesaikan level sebelumnya dengan skor minimal 70.</p>
+            <input type="number" id="pin-input" placeholder="PIN: 20511947" class="w-full text-center text-2xl tracking-widest p-3 border-2 border-gray-200 rounded-xl mb-4 focus:border-[#3282B8] outline-none transition">
+            <div class="flex gap-3">
+                <button onclick="document.getElementById('modal-pin').classList.remove('active')" class="flex-1 py-3 text-gray-500 font-medium">Batal</button>
+                <button onclick="app.submitPin()" class="flex-1 btn-action">Buka Paksa</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- GAME ENGINE ---
+        const app = {
+            // Config
+            adminPin: "20511947",
+            apiKey: "", // Injected by system
+            passingScore: 70,
+            
+            // State
+            currentTopic: null,
+            currentQIndex: 0,
+            score: 0,
+            userAnswers: [],
+            
+            // DOM Elements
+            els: {
+                screens: {
+                    map: document.getElementById('screen-map'),
+                    quiz: document.getElementById('screen-quiz'),
+                    result: document.getElementById('screen-result')
+                },
+                modals: {
+                    feedback: document.getElementById('modal-feedback'),
+                    pin: document.getElementById('modal-pin')
+                },
+                quiz: {
+                    progress: document.getElementById('quiz-progress'),
+                    question: document.getElementById('question-text'),
+                    options: document.getElementById('options-container'),
+                    audioWrapper: document.getElementById('audio-player-wrapper'),
+                    audioBtn: document.getElementById('btn-play-audio'),
+                    transcript: document.getElementById('audio-transcript')
+                },
+                feedback: {
+                    header: document.getElementById('fb-header'),
+                    exp: document.getElementById('fb-explanation'),
+                    trans: document.getElementById('fb-translation')
+                }
+            },
+
+            // 1. Navigation
+            showScreen(name) {
+                Object.values(this.els.screens).forEach(el => el.classList.add('hidden'));
+                this.els.screens[name].classList.remove('hidden');
+            },
+
+            // 2. Quiz Logic
+            startTopic(topic) {
+                this.currentTopic = topic;
+                this.currentQIndex = 0;
+                this.score = 0;
+                this.showScreen('quiz');
+                this.loadQuestion();
+            },
+
+            loadQuestion() {
+                const qData = questionBank[this.currentTopic][this.currentQIndex];
+                const total = questionBank[this.currentTopic].length;
+
+                // Update UI
+                this.els.quiz.progress.innerText = `${this.currentQIndex + 1} / ${total}`;
+                this.els.quiz.question.innerText = qData.q;
+                this.els.quiz.options.innerHTML = '';
+
+                // Handle Listening
+                if (this.currentTopic === 'listening') {
+                    this.els.quiz.audioWrapper.classList.remove('hidden');
+                    this.els.quiz.transcript.innerText = qData.script;
+                    this.els.quiz.audioBtn.onclick = () => this.playAudio(qData.script);
+                    this.els.quiz.audioBtn.disabled = false;
+                    this.els.quiz.audioBtn.innerHTML = "🔊 Putar Audio Percakapan";
+                } else {
+                    this.els.quiz.audioWrapper.classList.add('hidden');
+                }
+
+                // Generate Options
+                qData.opt.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.className = 'option-btn';
+                    btn.innerText = opt;
+                    btn.onclick = () => this.handleAnswer(opt, qData);
+                    this.els.quiz.options.appendChild(btn);
+                });
+            },
+
+            handleAnswer(selected, qData) {
+                const isCorrect = selected === qData.ans;
+                if (isCorrect) this.score += 1;
+
+                // Show Feedback Modal
+                const header = this.els.feedback.header;
+                if (isCorrect) {
+                    header.innerText = "JAWABAN BENAR! 🎉";
+                    header.className = "p-4 bg-green-100 text-green-800 font-bold text-lg text-center border-b border-green-200";
+                } else {
+                    header.innerText = "JAWABAN SALAH 😓";
+                    header.className = "p-4 bg-red-100 text-red-800 font-bold text-lg text-center border-b border-red-200";
+                }
+
+                this.els.feedback.exp.innerHTML = `<strong class="text-gray-800">Jawaban: ${qData.ans}</strong><br><br>${qData.exp}`;
+                this.els.feedback.trans.innerText = qData.trans;
+                
+                this.els.modals.feedback.classList.add('active');
+            },
+
+            nextQuestion() {
+                this.els.modals.feedback.classList.remove('active');
+                const total = questionBank[this.currentTopic].length;
+                
+                if (this.currentQIndex < total - 1) {
+                    this.currentQIndex++;
+                    this.loadQuestion();
+                } else {
+                    this.finishQuiz();
+                }
+            },
+
+            finishQuiz() {
+                const total = questionBank[this.currentTopic].length; // 15
+                const finalScore = Math.round((this.score / total) * 100);
+                const passed = finalScore >= this.passingScore;
+
+                this.showScreen('result');
+                document.getElementById('final-score').innerText = finalScore;
+                
+                const badge = document.getElementById('pass-fail-badge');
+                const msg = document.getElementById('result-message');
+                const icon = document.getElementById('result-icon');
+
+                if (passed) {
+                    badge.innerText = "LULUS";
+                    badge.className = "inline-block px-4 py-1 rounded-full text-sm font-bold bg-green-100 text-green-700";
+                    msg.innerText = `Selamat! Anda melampaui batas skor ${this.passingScore}. Gembok zona berikutnya telah terbuka.`;
+                    icon.innerText = "🏆";
+                    this.unlockNextZone();
+                } else {
+                    badge.innerText = "BELUM LULUS";
+                    badge.className = "inline-block px-4 py-1 rounded-full text-sm font-bold bg-red-100 text-red-700";
+                    msg.innerText = `Skor Anda belum mencapai target ${this.passingScore}. Pelajari pembahasan di setiap soal dan coba lagi!`;
+                    icon.innerText = "📚";
+                }
+            },
+
+            retryTopic() {
+                this.startTopic(this.currentTopic);
+            },
+
+            // 3. Unlock Logic
+            unlockNextZone() {
+                const order = ['structure', 'writtenExpression', 'advancedGrammar', 'reinforcement', 'reading', 'listening'];
+                const currentIdx = order.indexOf(this.currentTopic);
+                
+                if (currentIdx < order.length - 1) {
+                    const nextTopic = order[currentIdx + 1];
+                    const zoneEl = document.getElementById(`zone-${nextTopic}`);
+                    if (zoneEl) {
+                        zoneEl.classList.remove('locked');
+                        // Add visual cue
+                        zoneEl.classList.add('ring-4', 'ring-green-400');
+                        setTimeout(() => zoneEl.classList.remove('ring-4', 'ring-green-400'), 2000);
+                    }
+                }
+            },
+
+            // 4. Lock & PIN System
+            checkLock(topic) {
+                const el = document.getElementById(`zone-${topic}`);
+                if (el.classList.contains('locked')) {
+                    this.targetUnlock = topic;
+                    this.els.modals.pin.classList.add('active');
+                } else {
+                    this.startTopic(topic);
+                }
+            },
+
+            submitPin() {
+                const input = document.getElementById('pin-input');
+                if (input.value === this.adminPin) {
+                    document.getElementById(`zone-${this.targetUnlock}`).classList.remove('locked');
+                    this.els.modals.pin.classList.remove('active');
+                    input.value = '';
+                } else {
+                    alert("PIN Salah! Coba lagi.");
+                }
+            },
+
+            // 5. Audio System (Robust)
+            async playAudio(text) {
+                const btn = this.els.quiz.audioBtn;
+                const status = document.getElementById('audio-status');
+                
+                btn.disabled = true;
+                btn.innerHTML = "⏳ Memuat Audio...";
+                
+                try {
+                    // Strategy A: Gemini TTS
+                    const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${this.apiKey}`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            contents: [{parts:[{text: text}]}],
+                            generationConfig: {
+                                responseModalities: ["AUDIO"],
+                                speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Aoede" } } }
+                            }
+                        })
+                    });
+
+                    if (!resp.ok) throw new Error("API Error");
+                    
+                    const data = await resp.json();
+                    const base64Audio = data.candidates[0].content.parts[0].inlineData.data;
+                    
+                    // Decode & Play
+                    const audioStr = atob(base64Audio);
+                    const audioLen = audioStr.length;
+                    const audioArr = new Uint8Array(audioLen);
+                    for (let i=0; i<audioLen; i++) audioArr[i] = audioStr.charCodeAt(i);
+                    
+                    // Simple WAV header wrapping for PCM data (24kHz mono)
+                    const wav = this.pcmToWav(audioArr, 24000);
+                    const blob = new Blob([wav], {type: 'audio/wav'});
+                    const url = URL.createObjectURL(blob);
+                    const audio = new Audio(url);
+                    
+                    status.innerText = "Playing (AI Voice)";
+                    await audio.play();
+                    audio.onended = () => {
+                        btn.disabled = false;
+                        btn.innerHTML = "🔊 Putar Audio Percakapan";
+                        status.innerText = "";
+                    };
+
+                } catch (e) {
+                    console.warn("Fallback to Browser TTS", e);
+                    // Strategy B: Browser TTS
+                    status.innerText = "Playing (Offline Mode)";
+                    const u = new SpeechSynthesisUtterance(text);
+                    u.lang = 'en-US';
+                    u.rate = 0.9;
+                    window.speechSynthesis.speak(u);
+                    u.onend = () => {
+                        btn.disabled = false;
+                        btn.innerHTML = "🔊 Putar Audio Percakapan";
+                        status.innerText = "";
+                    };
+                }
+            },
+
+            pcmToWav(pcm, rate) {
+                const buffer = new ArrayBuffer(44 + pcm.length);
+                const view = new DataView(buffer);
+                const writeString = (o, s) => { for(let i=0; i<s.length; i++) view.setUint8(o+i, s.charCodeAt(i)); };
+                
+                writeString(0, 'RIFF'); view.setUint32(4, 36+pcm.length, true); writeString(8, 'WAVE');
+                writeString(12, 'fmt '); view.setUint32(16, 16, true); view.setUint16(20, 1, true);
+                view.setUint16(22, 1, true); view.setUint32(24, rate, true); view.setUint32(28, rate*2, true);
+                view.setUint16(32, 2, true); view.setUint16(34, 16, true); writeString(36, 'data');
+                view.setUint32(40, pcm.length, true);
+                new Uint8Array(buffer).set(pcm, 44);
+                return buffer;
+            }
+        };
+
+        // --- BANK SOAL (15 Soal x 6 Topik = 90 Soal) ---
+        const questionBank = {
+            'structure': [
+                { q: "The analysis of the data, along with the reports, ... the main part.", opt: ["is", "are", "be", "being"], ans: "is", exp: "Subjek kalimat adalah 'The analysis' (tunggal). Frasa 'along with...' adalah prepositional phrase yang tidak mengubah jumlah subjek. Maka verb harus tunggal (is).", trans: "Analisis data, beserta laporannya, adalah bagian utama." },
+                { q: "Neither the students nor the professor ... satisfied.", opt: ["is", "are", "were", "has"], ans: "is", exp: "Dalam konstruksi 'Neither...nor', verb mengikuti subjek terdekat. Subjek terdekat adalah 'the professor' (tunggal), jadi verb-nya 'is'.", trans: "Baik mahasiswa maupun profesor tidak puas." },
+                { q: "Every man, woman, and child ... vaccinated.", opt: ["was", "were", "are", "have been"], ans: "was", exp: "Kata 'Every' selalu membuat subjek dianggap tunggal, tidak peduli berapa banyak kata benda yang mengikutinya.", trans: "Setiap pria, wanita, dan anak telah divaksinasi." },
+                { q: "The number of students ... increased.", opt: ["has", "have", "are", "were"], ans: "has", exp: "'The number of' (jumlah dari) dianggap tunggal. Berbeda dengan 'A number of' (sejumlah) yang jamak.", trans: "Jumlah siswa telah meningkat." },
+                { q: "Physics ... a difficult subject.", opt: ["are", "is", "be", "being"], ans: "is", exp: "Nama mata pelajaran yang berakhiran -ics (Physics, Mathematics) selalu dianggap tunggal.", trans: "Fisika adalah pelajaran yang sulit." },
+                { q: "Only rarely ... her aunt.", opt: ["she visits", "does she visit", "visits she", "she does visit"], ans: "does she visit", exp: "Kalimat diawali 'Only rarely' memerlukan Inversi (Auxiliary + Subject + Verb).", trans: "Sangat jarang dia mengunjungi bibinya." },
+                { q: "Had I known, I ... helped.", opt: ["would", "would have", "will", "had"], ans: "would have", exp: "Conditional Type 3 (Past Unreal). Pola: Had + S + V3, S + would have + V3.", trans: "Jika saya tahu, saya akan membantu." },
+                { q: "The committee ... submitting their report.", opt: ["is", "are", "be", "has"], ans: "is", exp: "Collective noun 'committee' dianggap tunggal jika bertindak sebagai satu kesatuan.", trans: "Komite sedang mengajukan laporannya." },
+                { q: "She acts as if she ... the boss.", opt: ["is", "was", "were", "has been"], ans: "were", exp: "Subjunctive mood setelah 'as if' selalu menggunakan 'were' untuk semua subjek.", trans: "Dia bertingkah seolah dia bosnya." },
+                { q: "Not only ... smart, but he is also kind.", opt: ["he is", "is he", "he was", "was he"], ans: "is he", exp: "Inversi diperlukan setelah 'Not only' di awal kalimat.", trans: "Tidak hanya dia pintar, tapi juga baik." },
+                { q: "A large amount of money ... stolen.", opt: ["was", "were", "have been", "are"], ans: "was", exp: "'Money' adalah uncountable noun, jadi menggunakan verb tunggal 'was'.", trans: "Sejumlah besar uang telah dicuri." },
+                { q: "Making friends ... easier for some people.", opt: ["are", "is", "were", "be"], ans: "is", exp: "Gerund phrase 'Making friends' sebagai subjek dianggap tunggal.", trans: "Mencari teman itu lebih mudah bagi sebagian orang." },
+                { q: "Where ... go yesterday?", opt: ["did you", "you did", "were you", "you"], ans: "did you", exp: "Pertanyaan lampau (Past Tense) membutuhkan auxiliary 'did' sebelum subjek.", trans: "Kemana kamu pergi kemarin?" },
+                { q: "The news ... exciting.", opt: ["are", "is", "were", "have"], ans: "is", exp: "'News' adalah uncountable noun (tunggal).", trans: "Berita itu menarik." },
+                { q: "One of the boxes ... empty.", opt: ["is", "are", "were", "have"], ans: "is", exp: "Subjek utamanya adalah 'One' (satu), bukan 'boxes'. Jadi verb tunggal.", trans: "Salah satu kotak itu kosong." }
+            ],
+            'writtenExpression': [
+                { q: "The effects (A)was visible (B)almost immediately.", opt: ["A", "B", "C", "D"], ans: "A", exp: "Subjek 'The effects' berbentuk jamak. Kata kerja seharusnya 'were', bukan 'was'.", trans: "Efeknya terlihat hampir segera." },
+                { q: "He decided (A)to allow her (B)to finished the exam.", opt: ["A", "B", "C", "D"], ans: "B", exp: "Setelah 'to' (to infinitive) harus diikuti Verb 1 murni. Seharusnya 'to finish'.", trans: "Dia memutuskan mengizinkannya menyelesaikan ujian." },
+                { q: "She is (A)faster (B)then her brother.", opt: ["A", "B", "C", "D"], ans: "B", exp: "Kalimat komparatif (perbandingan) menggunakan 'than', bukan 'then'.", trans: "Dia lebih cepat dari kakaknya." },
+                { q: "The game (A)was (B)cancel due to rain.", opt: ["A", "B", "C", "D"], ans: "B", exp: "Kalimat pasif lampau (Passive Voice) membutuhkan Verb 3. Seharusnya 'canceled'.", trans: "Pertandingan dibatalkan karena hujan." },
+                { q: "Lived here (A)since five years.", opt: ["A", "B", "C", "D"], ans: "A", exp: "Untuk durasi waktu (jumlah tahun), gunakan 'for'. 'Since' untuk titik waktu tertentu.", trans: "Tinggal di sini selama lima tahun." },
+                { q: "Despite (A)of the rain, we (B)went out.", opt: ["A", "B", "C", "D"], ans: "A", exp: "'Despite' tidak boleh diikuti 'of'. Gunakan 'Despite the rain' atau 'In spite of'.", trans: "Meskipun hujan, kami pergi keluar." },
+                { q: "The (A)furnitures in the house (B)is old.", opt: ["A", "B", "C", "D"], ans: "A", exp: "'Furniture' adalah uncountable noun, tidak memiliki bentuk jamak dengan 's'.", trans: "Perabotan di rumah itu tua." },
+                { q: "He (A)stopped to smoke because it (B)was bad for health.", opt: ["A", "B", "C", "D"], ans: "A", exp: "'Stop to smoke' artinya berhenti untuk merokok. Konteksnya berhenti kebiasaan, harusnya 'stopped smoking' (Gerund).", trans: "Dia berhenti merokok karena buruk bagi kesehatan." },
+                { q: "I look forward (A)to meet you (B)next week.", opt: ["A", "B", "C", "D"], ans: "A", exp: "Frasa 'look forward to' adalah preposisi, harus diikuti Gerund (V-ing). Seharusnya 'to meeting'.", trans: "Saya menantikan bertemu Anda minggu depan." },
+                { q: "This is the (A)more (B)beautiful painting I have seen.", opt: ["A", "B", "C", "D"], ans: "A", exp: "Superlatif (paling indah) menggunakan 'most', bukan 'more'.", trans: "Ini adalah lukisan terindah yang pernah saya lihat." },
+                { q: "Each of the (A)student (B)has a book.", opt: ["A", "B", "C", "D"], ans: "A", exp: "Setelah 'Each of the...' harus diikuti benda jamak (students).", trans: "Setiap siswa memiliki buku." },
+                { q: "She avoids (A)to go to the (B)dentist.", opt: ["A", "B", "C", "D"], ans: "A", exp: "Kata kerja 'avoid' harus diikuti Gerund. Seharusnya 'avoids going'.", trans: "Dia menghindari pergi ke dokter gigi." },
+                { q: "My car is (A)the same color (B)like yours.", opt: ["A", "B", "C", "D"], ans: "B", exp: "Pasangan 'the same' adalah 'as', bukan 'like'. Seharusnya 'the same color as yours'.", trans: "Mobilku warnanya sama dengan punyamu." },
+                { q: "Please give (A)me (B)an advice.", opt: ["A", "B", "C", "D"], ans: "B", exp: "'Advice' adalah uncountable noun, tidak bisa pakai 'an'. Gunakan 'some advice' atau 'a piece of advice'.", trans: "Tolong beri saya nasihat." },
+                { q: "Whatever (A)happen, I (B)will stay.", opt: ["A", "B", "C", "D"], ans: "A", exp: "Subjek 'Whatever' (tunggal) membutuhkan verb dengan -s. Seharusnya 'happens'.", trans: "Apapun yang terjadi, saya akan tinggal." }
+            ],
+            'advancedGrammar': [
+                { q: "Had he known, he ... differently.", opt: ["would act", "would have acted", "will act", "acted"], ans: "would have acted", exp: "Conditional Type 3 Inverted. Pola: Had + S + V3, S + Would have + V3.", trans: "Jika dia tahu, dia akan bertindak berbeda." },
+                { q: "Only by working hard ... succeed.", opt: ["you can", "can you", "you will", "did you"], ans: "can you", exp: "Inversi wajib setelah frasa 'Only by...'. Auxiliary (can) sebelum subject (you).", trans: "Hanya dengan kerja keras kamu bisa sukses." },
+                { q: "It is essential that be ... on time.", opt: ["be", "is", "were", "will be"], ans: "be", exp: "Subjunctive Mood. Setelah 'essential that', verb kembali ke bentuk dasar (bare infinitive).", trans: "Penting agar dia tepat waktu." },
+                { q: "Scarcely ... entered when it rang.", opt: ["he had", "had he", "he did", "did he"], ans: "had he", exp: "Inversi dengan 'Scarcely... when'. Gunakan Past Perfect.", trans: "Baru saja dia masuk ketika telepon berbunyi." },
+                { q: "..., the car broke down.", opt: ["Driving home", "While driving home", "To drive home", "Driven home"], ans: "While driving home", exp: "Reduction of Adverb Clause. Subjeknya (orang) sama dengan kalimat utama.", trans: "Saat menyetir pulang, mobilnya mogok." },
+                { q: "Not until midnight ... asleep.", opt: ["did he fall", "he fell", "fell he", "he did fall"], ans: "did he fall", exp: "Inversi dengan 'Not until'. Auxiliary 'did' muncul sebelum subjek.", trans: "Baru tengah malam dia tertidur." },
+                { q: "Little ... that he was watched.", opt: ["he knew", "did he know", "knew he", "he did know"], ans: "did he know", exp: "Inversi dengan negatif adverb 'Little'.", trans: "Dia sama sekali tidak tahu bahwa dia diawasi." },
+                { q: "The house, ... in 1890, is haunted.", opt: ["building", "built", "was built", "build"], ans: "built", exp: "Past Participle Phrase (Passive meaning). Lengkapnya 'which was built'.", trans: "Rumah itu, yang dibangun tahun 1890, berhantu." },
+                { q: "Whatever ... is fine with me.", opt: ["happens", "happen", "happening", "happened"], ans: "happens", exp: "Noun Clause sebagai subjek dianggap tunggal.", trans: "Apapun yang terjadi tidak masalah bagiku." },
+                { q: "I would rather you ... now.", opt: ["go", "went", "gone", "will go"], ans: "went", exp: "'Would rather' yang diikuti subjek lain menggunakan Past Tense untuk makna sekarang (Present/Future).", trans: "Saya lebih suka kamu pergi sekarang." },
+                { q: "Were I you, I ... accept.", opt: ["will", "would", "can", "did"], ans: "would", exp: "Inversi Conditional Type 2 (Were I you = If I were you).", trans: "Jika saya kamu, saya akan terima." },
+                { q: "No sooner ... arrived than he left.", opt: ["had we", "we had", "did we", "we did"], ans: "had we", exp: "Inversi 'No sooner... than'. Gunakan Past Perfect.", trans: "Baru saja kami tiba, dia pergi." },
+                { q: "Unless you ... hard, you will fail.", opt: ["study", "don't study", "studied", "will study"], ans: "study", exp: "'Unless' artinya 'If...not'. Jangan gunakan negatif ganda.", trans: "Kecuali kamu belajar keras, kamu akan gagal." },
+                { q: "Suppose you ... the lottery?", opt: ["win", "won", "winning", "wins"], ans: "won", exp: "'Suppose' sering diikuti Past Tense untuk situasi hipotetis.", trans: "Misalkan kamu memenangkan lotre?" },
+                { q: "It's time we ... home.", opt: ["go", "went", "gone", "going"], ans: "went", exp: "'It's time' diikuti Past Subjunctive.", trans: "Sudah waktunya kita pulang." }
+            ],
+            'reinforcement': [
+                { q: "Jakarta, ..., is crowded.", opt: ["capital city", "the capital city", "is capital", "which capital"], ans: "the capital city", exp: "Appositive (Frasa benda yang menjelaskan subjek).", trans: "Jakarta, sang ibukota, padat." },
+                { q: "..., a great player, won.", opt: ["The student", "Is the student", "He is", "Student"], ans: "The student", exp: "Kalimat membutuhkan subjek sebelum appositive.", trans: "Siswa itu, pemain hebat, menang." },
+                { q: "My friend, ..., is here.", opt: ["an artist", "is an artist", "who artist", "artist"], ans: "an artist", exp: "Appositive menjelaskan 'My friend'.", trans: "Temanku, seorang seniman, ada di sini." },
+                { q: "The book, ..., is famous.", opt: ["written by him", "writing by him", "wrote by him", "was written"], ans: "written by him", exp: "Past Participle Phrase menjelaskan 'The book'.", trans: "Buku yang ditulis olehnya terkenal." },
+                { q: "..., the CEO resigned.", opt: ["Facing scandal", "Faced scandal", "He faced", "Because faced"], ans: "Facing scandal", exp: "Present Participle Phrase (Active meaning). CEO yang menghadapi skandal.", trans: "Menghadapi skandal, CEO mundur." },
+                { q: "A gift, ..., was sent.", opt: ["wrapped in gold", "wrapping in gold", "wrap in gold", "is wrapped"], ans: "wrapped in gold", exp: "Past Participle Phrase (Passive).", trans: "Sebuah hadiah, dibungkus emas, dikirim." },
+                { q: "Sarah, ..., loves to cook.", opt: ["my sister", "is my sister", "who my sister", "she is my sister"], ans: "my sister", exp: "Appositive sederhana.", trans: "Sarah, adikku, suka memasak." },
+                { q: "The sun, ..., gives light.", opt: ["a star", "is a star", "being a star", "star"], ans: "a star", exp: "Appositive.", trans: "Matahari, sebuah bintang, memberi cahaya." },
+                { q: "..., Canada is cold.", opt: ["Located in north", "Locating in north", "It is located", "Location"], ans: "Located in north", exp: "Past Participle Phrase di awal kalimat.", trans: "Terletak di utara, Kanada dingin." },
+                { q: "Mr. Bean, ..., is funny.", opt: ["a comedian", "is a comedian", "who comedian", "comedian"], ans: "a comedian", exp: "Appositive.", trans: "Mr. Bean, seorang komedian, lucu." },
+                { q: "Bali, ..., is beautiful.", opt: ["an island", "is island", "island", "the island is"], ans: "an island", exp: "Appositive.", trans: "Bali, sebuah pulau, indah." },
+                { q: "..., he cried.", opt: ["Hearing the news", "Heard the news", "He hears", "The news"], ans: "Hearing the news", exp: "Present Participle (Active) - Dia yang mendengar.", trans: "Mendengar berita itu, dia menangis." },
+                { q: "The car, ..., is fast.", opt: ["made in Italy", "making in Italy", "make in Italy", "is made"], ans: "made in Italy", exp: "Past Participle (Passive).", trans: "Mobil itu, buatan Italia, cepat." },
+                { q: "Einstein, ..., was genius.", opt: ["a scientist", "is scientist", "scientist", "was scientist"], ans: "a scientist", exp: "Appositive.", trans: "Einstein, seorang ilmuwan, jenius." },
+                { q: "..., the bird flew.", opt: ["Scared", "Scaring", "Scare", "To scare"], ans: "Scared", exp: "Past Participle (Passive meaning) - Burung itu ditakuti/ketakutan.", trans: "Ketakutan, burung itu terbang." }
+            ],
+            'reading': [
+                { q: "Read: 'Plants use sunlight.' What do they use?", opt: ["Water", "Sunlight", "Wind", "Fire"], ans: "Sunlight", exp: "Informasi tertulis jelas dalam teks.", trans: "Tanaman menggunakan sinar matahari." },
+                { q: "Read: 'Pompeii destroyed in 79 AD.' When?", opt: ["79 BC", "1979", "79 AD", "2000"], ans: "79 AD", exp: "Detail eksplisit waktu.", trans: "Pompeii hancur tahun 79 M." },
+                { q: "Read: 'Bees pollinate.' What do bees do?", opt: ["Eat", "Sleep", "Pollinate", "Run"], ans: "Pollinate", exp: "Main idea dari kalimat singkat.", trans: "Lebah menyerbuki." },
+                { q: "Read: 'Open 9 to 5.' When close?", opt: ["9", "12", "5", "Never"], ans: "5", exp: "Inference sederhana dari jam operasional.", trans: "Tutup jam 5." },
+                { q: "Read: 'Water is vital.' Vital means?", opt: ["Useless", "Important", "Blue", "Cold"], ans: "Important", exp: "Vocabulary: Vital = Important/Essential.", trans: "Vital artinya penting." },
+                { q: "Read: 'She is exhausted.' She is...", opt: ["Happy", "Tired", "Angry", "Sad"], ans: "Tired", exp: "Vocabulary: Exhausted = Very Tired.", trans: "Dia kelelahan." },
+                { q: "Read: 'No smoking allowed.' You must...", opt: ["Smoke", "Not smoke", "Run", "Eat"], ans: "Not smoke", exp: "Prohibition sign meaning.", trans: "Dilarang merokok." },
+                { q: "Read: 'Admission Free.' Cost?", opt: ["$10", "$0", "$100", "$5"], ans: "$0", exp: "Vocabulary: Free = No cost.", trans: "Masuk gratis." },
+                { q: "Read: 'Handle with care.' Item is...", opt: ["Fragile", "Strong", "Heavy", "Soft"], ans: "Fragile", exp: "Inference: Barang yang butuh hati-hati biasanya pecah belah.", trans: "Tangani dengan hati-hati (Rapuh)." },
+                { q: "Read: 'Out of order.' Machine is...", opt: ["Working", "Broken", "New", "Sold"], ans: "Broken", exp: "Idiom: Out of order = Rusak.", trans: "Mesin rusak." },
+                { q: "Read: 'Keep off grass.' Do not...", opt: ["Eat grass", "Walk on grass", "Cut grass", "Water grass"], ans: "Walk on grass", exp: "Instruction meaning.", trans: "Jangan injak rumput." },
+                { q: "Read: 'Annual Sale.' Happens...", opt: ["Daily", "Monthly", "Yearly", "Weekly"], ans: "Yearly", exp: "Vocabulary: Annual = Yearly.", trans: "Obral tahunan." },
+                { q: "Read: 'Vacancy.' Means...", opt: ["Full", "Empty room/job", "Vacation", "Exit"], ans: "Empty room/job", exp: "Vocabulary.", trans: "Lowongan/Kosong." },
+                { q: "Read: 'Pedestrians only.' For...", opt: ["Cars", "Walkers", "Bikes", "Dogs"], ans: "Walkers", exp: "Vocabulary: Pedestrian = Pejalan kaki.", trans: "Khusus pejalan kaki." },
+                { q: "Read: 'Yield.' Means...", opt: ["Stop/Give way", "Go fast", "Turn", "Park"], ans: "Stop/Give way", exp: "Traffic sign meaning.", trans: "Beri jalan." }
+            ],
+            'listening': [
+                { script: "Man: Library is closed.\nWoman: It's a holiday.", q: "Why closed?", opt: ["Sunday", "Holiday", "Night", "Rain"], ans: "Holiday", exp: "Wanita menyatakan alasannya adalah hari libur.", trans: "Kenapa tutup? Hari libur." },
+                { script: "Woman: Coffee tastes bad.\nMan: You can say that again!", q: "Man means?", opt: ["Repeat it", "Agrees", "Disagrees", "Likes it"], ans: "Agrees", exp: "Idiom 'You can say that again' berarti sangat setuju.", trans: "Pria setuju kopi tidak enak." },
+                { script: "Man: Ride to airport?\nWoman: Car is in shop.", q: "Implies?", opt: ["Can drive", "Can't drive", "New car", "Walk"], ans: "Can't drive", exp: "Mobil di bengkel ('shop') berarti dia tidak bisa mengantar.", trans: "Dia tidak bisa mengantar." },
+                { script: "Man: Finished report?\nWoman: Piece of cake.", q: "Report was?", opt: ["Hard", "Easy", "Tasty", "Long"], ans: "Easy", exp: "Idiom 'Piece of cake' berarti sangat mudah.", trans: "Laporannya mudah." },
+                { script: "Man: Party tonight?\nWoman: I have an exam.", q: "She will?", opt: ["Study", "Party", "Sleep", "Eat"], ans: "Study", exp: "Alasan ujian menyiratkan dia akan belajar, bukan pesta.", trans: "Dia akan belajar." },
+                { script: "Woman: It's raining cats and dogs.\nMan: Don't forget umbrella.", q: "Weather?", opt: ["Sunny", "Heavy rain", "Light rain", "Snow"], ans: "Heavy rain", exp: "Idiom 'Raining cats and dogs' berarti hujan sangat deras.", trans: "Hujan deras." },
+                { script: "Man: How much is it?\nWoman: It costs an arm and a leg.", q: "Price?", opt: ["Cheap", "Expensive", "Free", "Fair"], ans: "Expensive", exp: "Idiom 'Cost an arm and a leg' berarti sangat mahal.", trans: "Mahal sekali." },
+                { script: "Woman: I'm feeling blue.\nMan: What's wrong?", q: "She feels?", opt: ["Happy", "Sad", "Sick", "Cold"], ans: "Sad", exp: "Idiom 'Feeling blue' berarti sedih.", trans: "Dia merasa sedih." },
+                { script: "Man: Let's call it a day.\nWoman: Good idea.", q: "They will?", opt: ["Start working", "Stop working", "Call someone", "Play"], ans: "Stop working", exp: "Idiom 'Call it a day' berarti berhenti bekerja untuk hari ini.", trans: "Berhenti bekerja." },
+                { script: "Woman: Break a leg!\nMan: Thanks.", q: "She means?", opt: ["Hurt yourself", "Good luck", "Stop", "Run"], ans: "Good luck", exp: "Idiom 'Break a leg' berarti semoga sukses (biasanya untuk pertunjukan).", trans: "Semoga sukses." },
+                { script: "Man: I'm all ears.\nWoman: Listen carefully.", q: "He is?", opt: ["Deaf", "Listening", "Talking", "Sleeping"], ans: "Listening", exp: "Idiom 'All ears' berarti mendengarkan dengan seksama.", trans: "Mendengarkan." },
+                { script: "Woman: Keep an eye on my bag.\nMan: Sure.", q: "Do what?", opt: ["Watch bag", "Steal bag", "Kick bag", "Buy bag"], ans: "Watch bag", exp: "Idiom 'Keep an eye on' berarti mengawasi/menjaga.", trans: "Jaga tas saya." },
+                { script: "Man: Give me a hand.\nWoman: Busy right now.", q: "He wants?", opt: ["Handshake", "Help", "Money", "High five"], ans: "Help", exp: "Idiom 'Give a hand' berarti membantu.", trans: "Dia minta bantuan." },
+                { script: "Woman: Don't let the cat out of the bag.\nMan: My lips are sealed.", q: "Don't?", opt: ["Release cat", "Tell secret", "Buy bag", "Open bag"], ans: "Tell secret", exp: "Idiom 'Let cat out of bag' berarti membocorkan rahasia.", trans: "Jangan bocorkan rahasia." },
+                { script: "Man: Hold your horses.\nWoman: Why wait?", q: "He means?", opt: ["Ride horse", "Be patient", "Run fast", "Buy horse"], ans: "Be patient", exp: "Idiom 'Hold your horses' berarti sabar/tunggu sebentar.", trans: "Sabarlah." }
+            ]
+        };
+
+        // Start App
+        app.showScreen('map');
+
+    </script>
+</body>
+</html>
+
+
+
