@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "io.github.rudynchelsea.twa",
+        "sha256_cert_fingerprints": ["85:9E:21:62:64:47:1F:E8:46:AF:0A:1E:13:A3:A2:10:6E:28:D8:4F:E9:BF:BB:A6:71:A0:B7:6F:EB:2A:3C:54"]
+      }
+    }]
